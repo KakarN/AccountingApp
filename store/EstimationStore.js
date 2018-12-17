@@ -1,3 +1,4 @@
+import {Share} from 'react-native'
 import {observable, action, computed} from 'mobx'
 import Database from './Database'
 
@@ -106,7 +107,7 @@ class EstimationStore {
                     console.log('delete estimation error', error)
                 }
             )
-        }, (error)=> {
+        }, (error) => {
             console.log('error', error)
         }, () => {
             console.log('success')
@@ -322,8 +323,8 @@ class EstimationStore {
         console.log('delete estimation Item', itemId)
 
         // find and remove from the item list of current estimation
-        for(let i=0; i<this.CurrentEstimation.item_list.length; i++) {
-            if(itemId === this.CurrentEstimation.item_list[i].id) {
+        for (let i = 0; i < this.CurrentEstimation.item_list.length; i++) {
+            if (itemId === this.CurrentEstimation.item_list[i].id) {
                 this.CurrentEstimation.item_list.splice(i, 1);
             }
         }
@@ -339,6 +340,39 @@ class EstimationStore {
                 },
                 (_, error) => {
                     console.log('delete estimation item error', error)
+                }
+            )
+        })
+    }
+
+    @action shareEstimation = (estimation_id, estimation_title) => {
+        console.log('shareEstimation', estimation_id, estimation_title)
+        Database.transaction(tx => {
+            tx.executeSql(
+                `SELECT * from estimation_items WHERE estimation_id=?`,
+                [estimation_id],
+                (_, {rows: {_array}}) => {
+                    const item_list = _array
+                    console.log('shareEstimation success: estimation items', item_list)
+
+                    let str_arr = []
+                    str_arr.push(`${estimation_title}\n\n`)
+                    for (let i = 0; i < item_list.length; i++) {
+                        const str = `${item_list[i].name} = ${item_list[i].quantity} (quantity) x ${item_list[i].price} (price) = ${item_list[i].quantity * item_list[i].price}`
+                        str_arr.push(str)
+                    }
+                    str_arr.push(`\n\nPrepared with AccountingApp.\nDownload for free https://play.google.com/store/apps/details?id=com.techhaste.kakarnyori`)
+                    const message = str_arr.join(`\n\n`)
+                    const shareOptions = {
+                        title: estimation_title,
+                        message: message,
+                        url: 'www.techhaste.com',
+                        subject: estimation_title
+                    };
+                    Share.share(shareOptions)
+                },
+                (_, error) => {
+                    console.log('shareEstimation error', error)
                 }
             )
         })

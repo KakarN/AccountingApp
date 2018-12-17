@@ -17,7 +17,7 @@ export default class Note extends React.Component {
                 {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                 {text: 'OK', onPress: () => NoteStore.deleteNote(note.id)},
             ],
-            {cancelable: false}
+            {cancelable: true}
         )
     }
 
@@ -28,10 +28,8 @@ export default class Note extends React.Component {
                 underlayColor='red'
                 style={styles.rectButton}
                 onPress={this._onPress}>
-                <View style={styles.container}>
-                    <Text style={styles.noteInput}>{note.text}</Text>
-                    <Text style={styles.noteInput}>{note.price}</Text>
-                </View>
+                <Text style={[styles.noteInput, styles.noteText]}>{note.text}</Text>
+                <Text style={[styles.noteInput, styles.notePrice]}>{note.price}</Text>
             </RectButton>
         )
     }
@@ -39,18 +37,21 @@ export default class Note extends React.Component {
 
 const styles = StyleSheet.create({
     rectButton: {
-        backgroundColor: '#f9f9f9',
-    },
-    container: {
-        // backgroundColor: '#f9f6ff',
-        flex: 1,
+        backgroundColor: '#f5f5f5',
         flexDirection: 'row',
-        paddingHorizontal: 20,
+        alignItems: 'center',
+        paddingHorizontal: 14,
         paddingVertical: 8,
         justifyContent: 'space-between',
     },
     noteInput: {
         fontSize: 16,
-        padding: 8,
-    }
+        paddingHorizontal: 8,
+    },
+    noteText: {
+        width: '71%',
+    },
+    notePrice: {
+        width: '28%',
+    },
 })
