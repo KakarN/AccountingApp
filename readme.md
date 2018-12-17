@@ -1,0 +1,1 @@
+A minimalist app to simplify your financial and accounting problems. You can plan expenditures and estimated budgets, and keep a note of your daily expenses in a very minimalistic approach to your personal finance management.

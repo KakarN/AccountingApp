@@ -1,0 +1,427 @@
+import {observable, action, computed} from "mobx"
+import Database from './Database';
+
+class ExpenditureStore {
+    @observable ExpenditureList = [
+        // {
+        //     id: 1,
+        //     title: 'Priority Expenditure',
+        //     max_amount: 10000,
+        //     item_list: [
+        //         {
+        //             id: 1,
+        //             quantity: 10,
+        //             price: 450,
+        //             name: 'Cement'
+        //         },
+        //         {
+        //             id: 2,
+        //             quantity: 200,
+        //             price: 10,
+        //             name: 'Bricks'
+        //         },
+        //     ],
+        //     last_update: new Date().getTime(),
+        // },
+        // {
+        //     id: 2,
+        //     title: 'Test expenditure',
+        //     max_amount: 2000,
+        //     item_list: [
+        //         {
+        //             id: 1,
+        //             quantity: 10,
+        //             price: 450,
+        //             name: 'Wire'
+        //         },
+        //     ],
+        //     last_update: new Date().getTime(),
+        // }
+    ]
+
+    // DATABASE MANIPULATION
+    @action createTables = () => {
+        this.createExpenditureTable()
+        this.createExpenditureItemTable()
+    }
+
+    @action createExpenditureTable = () => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `CREATE TABLE if not exists expenditures (id integer primary key, title text not null, max_amount real not null, last_update datetime default (datetime('now', 'localtime')));`,
+                [],
+                (_, ResultSet) => {
+                    console.log('created table expenditure successful')
+                    this.updateExpenditureList()
+                },
+                (_, error) => {
+                    console.log('created table expenditure error', error)
+                }
+            )
+        })
+    }
+
+    @action createExpenditureItemTable = () => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `CREATE TABLE if not exists expenditure_items (id integer primary key, name text not null, quantity integer not null, price real not null, expenditure_id integer not null, foreign key(expenditure_id) references expenditures(id));`,
+                [],
+                (_, ResultSet) => {
+                    console.log('created table eXpenditure items successful')
+                    // this.testDB()
+                },
+                (_, error) => {
+                    console.log('created table eXpenditure items error', error)
+                }
+            )
+        })
+    }
+
+    @action testDB = () => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `DROP TABLE expenditure_items;`,
+                [],
+                (_, ResultSet) => {
+                    console.log('all eXpenditure_items success ResultSet', ResultSet)
+                },
+                (_, error) => {
+                    console.log('all eXpenditure_items error', error)
+                }
+            )
+        })
+    }
+
+    @action updateExpenditureList = () => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                'SELECT * FROM EXPENDITURES ORDER BY last_update DESC;',
+                // `INSERT INTO expenditures (title, max_amount) values ('Priority expenditures', 500), ('expenditures one', 2000);`,
+                [],
+                (_, {rows: {_array}}) => {
+                    // console.log('update expenditure list', _array)
+                    this.ExpenditureList.replace(_array)
+                }
+            )
+        })
+    }
+
+    @action getExpenditureItemList = (expenditure_id) => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `SELECT * FROM expenditure_items WHERE expenditure_id=?`,
+                // `INSERT INTO expenditure_items (name, quantity, price, expenditure_id) values ('cement', 5, 50, 1), ('bricks', 8, 10, 1);`,
+                // `delete from expenditure_items where id=5;`,
+                [expenditure_id],
+                (_, {rows: {_array}}) => {
+                    this.CurrentExpenditure.item_list.replace(_array)
+                },
+                (_, error) => {
+                    console.log('getExpenditureItemList error', error)
+                }
+            )
+        })
+    }
+
+    @action deleteObject = (expenditure_id) => {
+        console.log('deleteObject', expenditure_id)
+        Database.transaction(tx => {
+            tx.executeSql(
+                `DELETE FROM expenditures where id=?`,
+                [expenditure_id],
+                (_, ResultSet) => {
+                    console.log('delete expenditure success', ResultSet)
+                    this.updateExpenditureList()
+                },
+                (_, error) => {
+                    console.log('delete expenditure error', error)
+                }
+            )
+        }, (error)=> {
+            console.log('error', error)
+        }, () => {
+            console.log('success')
+        })
+    }
+
+
+    // EXPENDITURE MANIPULATION
+
+    @observable CurrentExpenditure = {
+        id: new Date().getTime(),
+        title: '',
+        max_amount: '',
+        item_list: [],
+        last_update: null,
+    }
+
+    @action createNewCurrentExpenditure = expenditure => {
+        const newExpenditure = {
+            id: new Date().getTime(),
+            title: '',
+            max_amount: '',
+            item_list: [],
+            last_update: null,
+        }
+        this.setCurrentExpenditure(newExpenditure)
+    }
+
+    @action setCurrentExpenditure = expenditure => {
+        this.updateErrorText('')
+        this.CurrentExpenditure = expenditure
+    }
+
+    @action setTitle = title => {
+        this.CurrentExpenditure.title = title
+    }
+
+    @action setMaximumAmount = maxAmount => {
+        this.CurrentExpenditure.max_amount = maxAmount
+        this.updateErrorText('')
+    }
+
+    @computed get remainingExpenditureBalance() {
+        let remainingBalance = parseFloat(this.CurrentExpenditure.max_amount)
+        // console.log('store remainingBalance', remainingBalance)
+        if (this.CurrentExpenditure.item_list.length > 0) {
+            for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+                let price = this.CurrentExpenditure.item_list[i].price
+                if (!price) {
+                    price = 0
+                }
+                let quantity = this.CurrentExpenditure.item_list[i].quantity
+                if (!quantity) {
+                    quantity = 0
+                }
+                let itemTotal = parseFloat(price) * parseInt(quantity)
+                // console.log('store loop itemTotal', itemTotal)
+                remainingBalance = remainingBalance - itemTotal
+                // console.log('store loop balance', remainingBalance)
+            }
+        }
+        return parseFloat(
+            Math.round(remainingBalance * 100) / 100
+        )
+    }
+
+    @action pushCurrentExpenditureToExpenditureList = () => {
+        if (this.CurrentExpenditure.last_update) {
+            console.log('before has last_update, is', this.CurrentExpenditure.last_update)
+            for (let i = 0; i < this.ExpenditureList.length; i++) {
+                if (this.CurrentExpenditure.id === this.ExpenditureList[i].id) {
+                    console.log('found the expenditure, updating...')
+                    let expenditure = Object.assign({}, this.CurrentExpenditure)
+                    this.updateExpenditureObjectDB(expenditure)
+                }
+            }
+        } else {
+            console.log('before no last update, is', this.CurrentExpenditure.last_update)
+            const newExpenditure = Object.assign({}, this.CurrentExpenditure)
+            this.insertExpenditureObjectDB(newExpenditure)
+
+        }
+    }
+
+    @action insertExpenditureObjectDB = (newExpenditure) => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `INSERT INTO expenditures (title, max_amount) values (?, ?)`,
+                [newExpenditure.title, newExpenditure.max_amount],
+                (_, {insertId}) => {
+                    console.log('new expenditure insert success insertId', insertId)
+                    for (let i = 0; i < newExpenditure.item_list.length; i++) {
+                        let expenditureItem = newExpenditure.item_list[i]
+                        this.insertExpenditureItemDB(expenditureItem, insertId)
+                    }
+                    this.updateExpenditureList()
+                },
+                (_, error) => {
+                    console.log('new expenditure insert error', error)
+                }
+            )
+        })
+    }
+
+    @action insertExpenditureItemDB = (expenditureItem, expenditure_id) => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `INSERT INTO expenditure_items (name, quantity, price, expenditure_id) values (?, ?, ?, ?);`,
+                [expenditureItem.name, expenditureItem.quantity, expenditureItem.price, expenditure_id],
+                (_, {insertId}) => {
+                    console.log('new item insert success insertId', insertId)
+                },
+                (_, error) => {
+                    console.log('new item insert ERROR', error)
+                }
+            )
+        })
+    }
+
+    @action updateExpenditureObjectDB = (expenditure) => {
+        Database.transaction(tx => {
+            tx.executeSql(
+                `UPDATE expenditures SET title='${expenditure.title}', max_amount=?, last_update=DATETIME('now','localtime') WHERE id=?;`,
+                [expenditure.max_amount, expenditure.id],
+                (_, ResultSet) => {
+                    console.log('updateExpenditureObjectDB success', ResultSet)
+                    this.updateExpenditureList()
+                    for (let i = 0; i < expenditure.item_list.length; i++) {
+                        let expenditureItem = expenditure.item_list[i]
+                        this.checkExpenditureItemExistDB(expenditureItem, expenditure.id)
+                    }
+                },
+                (_, error) => {
+                    console.log('updateExpenditureObjectDB error', error)
+                }
+            )
+        })
+    }
+
+    @action checkExpenditureItemExistDB = (expenditureItem, expenditure_id) => {
+        console.log('checkExpenditureItemExistDB expenditureItem id=', expenditureItem.id)
+        Database.transaction(tx => {
+            tx.executeSql(
+                'SELECT COUNT(*) FROM expenditure_items WHERE id=?',
+                [expenditureItem.id],
+                (_, {rows: {_array}}) => {
+                    console.log(`checkExpenditureItemExistDB success ${expenditureItem.id}`, _array)
+                    const count = _array[0]["COUNT(*)"]
+                    console.log('count', count)
+                    // if count is 0, meaning no expenditure item exists, then insert item into db
+                    if (count < 1) {
+                        this.insertExpenditureItemDB(expenditureItem, expenditure_id)
+                    }
+                    // else update item
+                    else {
+                        this.updateExpenditureItemDB(expenditureItem)
+                    }
+                },
+                (_, error) => {
+                    console.log('checkExpenditureItemExistDB error', error)
+                }
+            )
+        })
+    }
+
+    @action updateExpenditureItemDB = (expenditureItem) => {
+        console.log(`updateExpenditureItemDB expenditure item ${expenditureItem.id}`)
+        Database.transaction(tx => {
+            tx.executeSql(
+                `UPDATE expenditure_items SET name='${expenditureItem.name}', quantity=?, price=? WHERE id=?`,
+                [expenditureItem.quantity, expenditureItem.price, expenditureItem.id],
+                (_, ResultSet) => {
+                    console.log('updateExpenditureItemDB success', ResultSet)
+                },
+                (_, error) => {
+                    console.log('updateExpenditureItemDB error', error)
+                }
+            )
+        })
+    }
+
+
+    // ITEM MANIPULATION
+
+    @action addNewItemToExpenditure = () => {
+        const item = {
+            id: new Date().getTime(),
+            quantity: '',
+            price: '',
+            name: '',
+        }
+
+        this.CurrentExpenditure.item_list.push(item)
+    }
+
+    @action setQuantity = (item_id, quantity) => {
+        // console.log('setQuantitititititit', item_id, quantity)
+        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+            if (item_id === this.CurrentExpenditure.item_list[i].id) {
+                this.CurrentExpenditure.item_list[i].quantity = quantity
+                this.updateErrorText('')
+            }
+        }
+    }
+
+    @action setPrice = (item_id, price) => {
+        // console.log('setPPPRIIICCCEE', item_id, price)
+        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+            if (item_id === this.CurrentExpenditure.item_list[i].id) {
+                this.CurrentExpenditure.item_list[i].price = price
+                this.updateErrorText('')
+            }
+        }
+    }
+
+    @action setName = (item_id, name) => {
+        // console.log('setNANANAMAME', item_id, name)
+        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+            if (item_id === this.CurrentExpenditure.item_list[i].id) {
+                // console.log('found item')
+                this.CurrentExpenditure.item_list[i].name = name
+                this.updateErrorText('')
+            }
+        }
+    }
+
+    @action deleteItemDB = (itemId) => {
+        console.log('delete expenditure Item', itemId)
+
+        // find and remove from the item list of current expenditure
+        for(let i=0; i<this.CurrentExpenditure.item_list.length; i++) {
+            if(itemId === this.CurrentExpenditure.item_list[i].id) {
+                this.CurrentExpenditure.item_list.splice(i, 1);
+            }
+        }
+
+        // find and delete item from the database
+        Database.transaction(tx => {
+            tx.executeSql(
+                `DELETE FROM expenditure_items where id=?`,
+                [itemId],
+                (_, ResultSet) => {
+                    console.log('delete expenditure item success', ResultSet)
+
+                },
+                (_, error) => {
+                    console.log('delete expenditure item error', error)
+                }
+            )
+        })
+    }
+
+
+    // EXPENDITURE ERROR MANIPULATION
+
+    @observable ErrorText = ''
+
+    @action updateErrorText = text => {
+        this.ErrorText = text
+    }
+
+
+    // Expenditure Text Item MANIPULATION
+
+    ExpenditureLayout = null
+    ExpenditureComponentIndex = 0
+
+    @action setInitialItemLayout = layout => {
+        // if (!this.ExpenditureLayout) {
+        //     // console.log('no ExpenditureLayout')
+        //     this.ExpenditureLayout = Object.assign({}, layout)
+        //     // console.log('made ExpenditureLayout', this.ExpenditureLayout)
+        // }
+        // // console.log('has ExpenditureLayout', this.ExpenditureLayout)
+        this.ExpenditureLayout = Object.assign({}, layout)
+    }
+
+    @action setItemComponentIndex = id => {
+        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+            if (id === this.CurrentExpenditure.item_list[i].id) {
+                this.ExpenditureComponentIndex = i
+            }
+        }
+    }
+}
+
+export default ExpenditureStore

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Accounting App",
+    "slug": "accounting-app",
+    "privacy": "public",
+    "sdkVersion": "31.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#1D1D4E"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "description": "A minimalist app to simplify your financial and accounting problems. You can plan expenditures and estimated budgets, and keep a note of your daily expenses in a very minimalistic approach to your personal finance management.",
+    "primaryColor": "#4745CE"
+  }
+}
