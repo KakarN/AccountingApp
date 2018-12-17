@@ -1,5 +1,6 @@
 import {observable, action, computed} from "mobx"
 import Database from './Database';
+import {Share} from "react-native";
 
 class ExpenditureStore {
     @observable ExpenditureList = [
@@ -385,6 +386,39 @@ class ExpenditureStore {
                 },
                 (_, error) => {
                     console.log('delete expenditure item error', error)
+                }
+            )
+        })
+    }
+
+    @action shareExpenditure = (expenditure_id, expenditure_title) => {
+        console.log('shareExpenditure', expenditure_id, expenditure_title)
+        Database.transaction(tx => {
+            tx.executeSql(
+                `SELECT * from expenditure_items WHERE expenditure_id=?`,
+                [expenditure_id],
+                (_, {rows: {_array}}) => {
+                    const item_list = _array
+                    console.log('shareExpenditure success: expenditure items', item_list)
+
+                    let str_arr = []
+                    str_arr.push(`${expenditure_title}\n\n`)
+                    for (let i = 0; i < item_list.length; i++) {
+                        const str = `${item_list[i].name} = ${item_list[i].quantity} (quantity) x ${item_list[i].price} (price) = ${item_list[i].quantity * item_list[i].price}`
+                        str_arr.push(str)
+                    }
+                    str_arr.push(`\n\nPrepared with AccountingApp.\nDownload for free https://play.google.com/store/apps/details?id=com.techhaste.kakarnyori`)
+                    const message = str_arr.join(`\n\n`)
+                    const shareOptions = {
+                        title: expenditure_title,
+                        message: message,
+                        url: 'www.techhaste.com',
+                        subject: expenditure_title
+                    };
+                    Share.share(shareOptions)
+                },
+                (_, error) => {
+                    console.log('shareExpenditure error', error)
                 }
             )
         })
