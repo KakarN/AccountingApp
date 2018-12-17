@@ -46,16 +46,34 @@ class BudgetCard extends React.Component {
         navigation.navigate(navigateToURL)
     }
 
-    _deleteAlert = () => {
+    showOptions = () => {
         Alert.alert(
-            `Delete`,
-            'Are you sure you want to delete?',
+            'Options',
+            'What would you like to do?',
             [
-                {text: 'OK', onPress: () => this.deleteObject()},
-                {text: 'No', onPress: () => console.log('delete no')},
+                {text: 'Share', onPress: () => this.shareObject()},
+                {text: 'Delete', onPress: () => this.deleteObject()},
+                {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
             ],
-            {cancelable: false}
+            {cancelable: true}
         )
+    }
+
+    shareObject = () => {
+        const {storeType} = this.props
+        let STORE, currentStore
+        switch (storeType) {
+            case 'expenditure':
+                STORE = this.props.ExpenditureStore
+                const expenditure = this.props.expenditure
+                STORE.shareExpenditure(expenditure.id, expenditure.title)
+                break
+            case 'estimation':
+                STORE = this.props.EstimationStore
+                const estimation = this.props.estimation
+                STORE.shareEstimation(estimation.id, estimation.title)
+                break
+        }
     }
 
     deleteObject = () => {
@@ -96,7 +114,7 @@ class BudgetCard extends React.Component {
                     <Text style={styles.titleText}>{title}</Text>
                     <Text style={styles.updatedText}>{updatedAt}</Text>
                 </RectButton>
-                <BorderlessButton style={styles.moreWrapper} onPress={this._deleteAlert}>
+                <BorderlessButton style={styles.moreWrapper} onPress={this.showOptions}>
                     <Ionicons name="md-more" size={32} color={Colors.secondaryColor}/>
                 </BorderlessButton>
             </View>

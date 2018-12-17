@@ -1,5 +1,6 @@
 import React from 'react'
-import {View, StyleSheet, TextInput, Button, Text} from 'react-native'
+import {View, StyleSheet, TextInput, Text} from 'react-native'
+import {BorderlessButton} from 'react-native-gesture-handler'
 import {inject, observer} from "mobx-react";
 import {PrimaryColorButton} from "./ButtonList";
 
@@ -8,7 +9,8 @@ import {PrimaryColorButton} from "./ButtonList";
 export default class NoteListFooter extends React.Component {
     constructor(props) {
         super(props)
-        this.noteInputRef = React.createRef()
+        this.noteInputWrapperRef = React.createRef()
+        this.noteTextRef = React.createRef()
         this.state = {
             text: '',
             price: ''
@@ -17,7 +19,7 @@ export default class NoteListFooter extends React.Component {
 
     setComponentLayout = () => {
         const {NoteStore} = this.props
-        this.noteInputRef.current.measure((fx, fy, width, height, px, py) => {
+        this.noteInputWrapperRef.current.measure((fx, fy, width, height, px, py) => {
             const layout = {
                 height,
                 yOffset: py
@@ -46,23 +48,33 @@ export default class NoteListFooter extends React.Component {
         }
     }
 
+    focusTextInput = () => {
+        this.noteTextRef.current.focus()
+    }
+
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.inputLabel}>Add new note</Text>
-                <View style={styles.noteInputWrapper} ref={this.noteInputRef} onLayout={this._onLayout}>
+                <BorderlessButton onPress={this.focusTextInput}>
+                    <Text style={styles.inputLabel}>Add new note</Text>
+                </BorderlessButton>
+                <View style={styles.noteInputWrapper} ref={this.noteInputWrapperRef} onLayout={this._onLayout}>
                     <TextInput
+                        ref={this.noteTextRef}
                         placeholder={'Note'}
-                        style={[styles.inputText, styles.noteText]}
+                        style={[styles.noteInput, styles.noteText]}
                         value={this.state.text}
                         onChangeText={text => this.setState({text})}
                         onFocus={this._onFocus}
+                        multiline={true}
                     />
                     <TextInput
                         placeholder={'Price'}
-                        style={[styles.inputText, styles.notePrice]}
+                        style={[styles.noteInput, styles.notePrice]}
                         value={this.state.price.toString()}
                         onChangeText={price => this.setState({price})}
+                        keyboardType={'decimal-pad'}
+                        multiline={true}
                     />
                 </View>
                 <PrimaryColorButton title={'Save note'} onPress={this._onPress}/>
@@ -73,15 +85,7 @@ export default class NoteListFooter extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        // paddingVertical: 50,
-        // paddingHorizontal: 20,
-        // borderWidth: 1,
-        // borderColor: 'red',
-    },
-    noteInputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
+        // backgroundColor: 'red'
     },
     inputLabel: {
         fontSize: 16,
@@ -90,14 +94,21 @@ const styles = StyleSheet.create({
         color: 'gray',
         paddingHorizontal: 20,
     },
-    inputText: {
-        // padding: 8,
-        fontSize: 16,
-        flexGrow: 1,
+    noteInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        justifyContent: 'space-between',
     },
-    noteText: {},
+    noteInput: {
+        fontSize: 16,
+        paddingHorizontal: 8,
+    },
+    noteText: {
+        width: '71%',
+    },
     notePrice: {
-        textAlign: 'right',
+        width: '28%',
     },
     saveButtonWrapper: {
         paddingVertical: 8,

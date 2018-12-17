@@ -13,7 +13,7 @@ const MainTabNavigator = createMaterialTopTabNavigator({
     EstimateBudget: {
         screen: BudgetListScreen,
         navigationOptions: {
-            title: 'Estimate Budget'
+            title: 'Estimate'
         },
         params: {
             storeType: 'estimation'
@@ -22,7 +22,7 @@ const MainTabNavigator = createMaterialTopTabNavigator({
     ExpenditurePlanning: {
         screen: BudgetListScreen,
         navigationOptions: {
-            title: 'Expenditure Planning'
+            title: 'Expenses'
         },
         params: {
             storeType: 'expenditure'

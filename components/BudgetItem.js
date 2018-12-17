@@ -91,7 +91,7 @@ export default class BudgetItem extends React.Component {
                 {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                 {text: 'OK', onPress: () => STORE.deleteItemDB(item.id)},
             ],
-            {cancelable: false}
+            {cancelable: true}
         )
     }
 

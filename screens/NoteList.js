@@ -18,7 +18,8 @@ export default class NoteList extends React.Component {
         this.state = {
             extraSize: 0,
             keyboardLayout: null,
-            flatListHeight: 0
+            flatListHeight: 0,
+            isKeyboardOpen: false
         }
     }
 
@@ -39,22 +40,20 @@ export default class NoteList extends React.Component {
     }
 
     keyboardOpened = event => {
-        const {NoteStore} = this.props
-        const scrollTo = this.state.flatListHeight - event.endCoordinates.height
-        this.setState({extraSize: scrollTo})
-        requestAnimationFrame(() => {
-            this.myFlatList.current.scrollToOffset({offset: scrollTo, animated: true});
-        })
-    }
-
-    _onContentSizeChange = (contentWidth, contentHeight) => {
-        console.log('contentWidth, contentHeight')
-        console.log(contentWidth, contentHeight)
-        this.setState({flatListHeight: contentHeight})
+        if (!this.state.isKeyboardOpen) {
+            this.setState({isKeyboardOpen: true, extraSize: event.endCoordinates.height})
+            requestAnimationFrame(() => {
+                this.myFlatList.current.scrollToIndex({
+                    animated: true,
+                    index: this.props.NoteStore.NoteList.length - 1,
+                    viewOffset: 100
+                })
+            })
+        }
     }
 
     keyboardClosed = event => {
-        this.setState({extraSize: 0})
+        this.setState({extraSize: 0, isKeyboardOpen: false})
     }
 
     _renderHeader = () => {
@@ -87,7 +86,7 @@ export default class NoteList extends React.Component {
                     data={data}
                     renderItem={this._renderItem}
                     keyExtractor={(item, index) => item.id.toString()}
-                    ItemSeparatorComponent={() => <View style={{marginTop: 1}}/>}
+                    ItemSeparatorComponent={() => <View style={{marginTop: 2}}/>}
                     ListFooterComponent={this._renderFooter}
                     ListEmptyComponent={this._renderEmptyComponent}
                     contentContainerStyle={{paddingTop: 14, paddingBottom: this.state.extraSize}}
