@@ -16,10 +16,7 @@ export default class EstimationEditScreen extends React.Component {
         super(props)
         this.myFlatList = React.createRef()
         this.state = {
-            keyboardLayout: null,
-            contentHeight: 0,
-            extraSize: 0,
-            contentSize: 0,
+            isKeyboardOpen: false
         }
     }
 
@@ -80,45 +77,25 @@ export default class EstimationEditScreen extends React.Component {
     }
 
     keyboardOpened = (event) => {
-        const keyboardLayout = event.endCoordinates
-        this.setState({keyboardLayout}, () => {
-            const {EstimationStore} = this.props
-            const EstimationLayout = toJS(EstimationStore.EstimationLayout)
-            const EstimationComponentIndex = toJS(EstimationStore.EstimationComponentIndex)
-            // // console.log('EstimationLayout', EstimationLayout)
-            // console.log('EstimationComponentIndex', EstimationComponentIndex)
-            if (EstimationLayout) {
-                // const position = (EstimationComponentIndex + 1) * EstimationLayout.height
-                const position = (EstimationComponentIndex) * EstimationLayout.height
-                // console.log('position', position)
-                const totalHeight = position + EstimationLayout.yOffset
-                // console.log('totalHeight', totalHeight)
-                // console.log('keyboardLayout', this.state.keyboardLayout)
-                if (totalHeight > this.state.keyboardLayout.screenY) {
-                    // console.log('extraSize YES scroll')
-                    this.setState({extraSize: EstimationLayout.height + this.state.keyboardLayout.height}, () => {
-                        // requestAnimationFrame(() => {
-                        //     this.myFlatList.current.scrollToOffset({
-                        //         offset: position,
-                        //         animated: true
-                        //     });
-                        // })
-                    })
-                    requestAnimationFrame(() => {
-                        this.myFlatList.current.scrollToOffset({offset: position, animated: true});
-                    })
-                }
-            }
-        })
-    }
-
-    _onContentSizeChange = (contentWidth, contentHeight) => {
-        this.setState({contentSize: contentHeight})
+        const {EstimationStore} = this.props
+        const EstimationComponentIndex = toJS(EstimationStore.EstimationComponentIndex)
+        if (!this.state.isKeyboardOpen && EstimationComponentIndex > 0) {
+            console.log('keyboard not open')
+            this.setState({extraSize: event.endCoordinates.height, isKeyboardOpen: true})
+            requestAnimationFrame(() => {
+                this.myFlatList.current.scrollToIndex({
+                    animated: true,
+                    index: EstimationComponentIndex,
+                    viewOffset: 100
+                })
+            })
+        } else {
+            console.log('keyboard already open or estimation index is < 1')
+        }
     }
 
     keyboardClosed = (event) => {
-        // console.log('keyboard event', event)
-        this.setState({extraSize: 0})
+        this.setState({extraSize: 0, isKeyboardOpen: false})
     }
 
     _renderItem = ({item}) => {

@@ -13,43 +13,11 @@ export default class BudgetItem extends React.Component {
         super(props);
     }
 
-    handleLayoutChange = () => {
-        this.setComponentLayout()
-    }
-
-    setComponentLayout = () => {
-        const {storeType} = this.props
-        let STORE
-        switch (storeType) {
-            case 'expenditure':
-                STORE = this.props.ExpenditureStore
-                this.feedPost.measure((fx, fy, width, height, px, py) => {
-                    const layout = {
-                        height,
-                        yOffset: py
-                    }
-                    STORE.setInitialItemLayout(layout)
-                })
-                break
-            case 'estimation':
-                STORE = this.props.EstimationStore
-                this.feedPost.measure((fx, fy, width, height, px, py) => {
-                    const layout = {
-                        height,
-                        yOffset: py
-                    }
-                    STORE.setInitialItemLayout(layout)
-                })
-                break
-        }
-    }
-
     _onFocus = () => {
         const itemId = this.props.item.id
         console.log('_onFocus', itemId)
 
         const {storeType} = this.props
-        let STORE
         switch (storeType) {
             case 'expenditure':
                 this.props.ExpenditureStore.setItemComponentIndex(itemId)
@@ -58,8 +26,6 @@ export default class BudgetItem extends React.Component {
                 this.props.EstimationStore.setItemComponentIndex(itemId)
                 break
         }
-
-        this.setComponentLayout()
     }
 
     showAlert = () => {
@@ -125,12 +91,6 @@ export default class BudgetItem extends React.Component {
 
         return (
             <View style={styles.container}
-                  onLayout={(event) => {
-                      this.handleLayoutChange(event)
-                  }}
-                  ref={view => {
-                      this.feedPost = view;
-                  }}
             >
                 <TextInput placeholder='Product/Service' style={[styles.textInput, styles.productServiceInput]}
                            onChangeText={(name) => STORE.setName(itemId, name)}

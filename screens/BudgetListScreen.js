@@ -66,8 +66,19 @@ export default class BudgetListScreen extends React.Component {
     }
 
     _renderFooter = () => {
+        const {navigation} = this.props
+        const storeType = navigation.getParam('storeType', null)
+        let buttonTitle
+        switch (storeType) {
+            case 'expenditure':
+                buttonTitle = 'Plan Expenditure'
+                break
+            case 'estimation':
+                buttonTitle = 'Make Estimation'
+                break
+        }
         return (
-            <PrimaryColorButton title='Add item' onPress={this._onPress}/>
+            <PrimaryColorButton title={buttonTitle} onPress={this._onPress}/>
         )
     }
 
@@ -75,22 +86,17 @@ export default class BudgetListScreen extends React.Component {
     render() {
         const {navigation} = this.props
         const storeType = navigation.getParam('storeType', null)
-        let STORE, data, buttonTitle
+        let STORE, data
         switch (storeType) {
             case 'expenditure':
                 STORE = this.props.ExpenditureStore
                 data = toJS(STORE.ExpenditureList)
-                buttonTitle = 'Create Expenditure'
-
-                // data = []
                 break
             case 'estimation':
                 STORE = this.props.EstimationStore
                 data = toJS(STORE.EstimationList)
-                buttonTitle = 'Create Estimation'
                 break
         }
-
         return (
             <View style={styles.container}>
                 <FlatList
@@ -103,7 +109,6 @@ export default class BudgetListScreen extends React.Component {
                     ListEmptyComponent={this._renderEmptyListComponent}
                     ListFooterComponent={this._renderFooter}
                 />
-
             </View>
         )
     }

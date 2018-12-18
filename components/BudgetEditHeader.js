@@ -10,6 +10,18 @@ import moment from 'moment'
 @observer
 export default class BudgetEditHeader extends React.Component {
 
+    _onFocus = () => {
+        const {storeType} = this.props
+        switch (storeType) {
+            case 'expenditure':
+                this.props.ExpenditureStore.setItemComponentIndex(1)
+                break
+            case 'estimation':
+                this.props.EstimationStore.setItemComponentIndex(1)
+                break
+        }
+    }
+
     render() {
         const {storeType} = this.props
         let STORE, currentStore, maxAmountComponent
@@ -17,16 +29,18 @@ export default class BudgetEditHeader extends React.Component {
             case 'expenditure':
                 STORE = this.props.ExpenditureStore
                 currentStore = toJS(STORE.CurrentExpenditure)
-                maxAmountComponent = <View style={styles.maximumWrapper}>
-                    <Text style={styles.label}>Maximum amount</Text>
-                    <TextInput
-                        style={styles.maximumAmountText}
-                        placeholder='0'
-                        onChangeText={(maxAmount) => STORE.setMaximumAmount(maxAmount)}
-                        keyboardType={'decimal-pad'}
-                        value={currentStore.max_amount.toString()}
-                    />
-                </View>
+                maxAmountComponent = (
+                    <View style={styles.rowData}>
+                        <Text style={styles.rowLabel}>Maximum amount</Text>
+                        <TextInput
+                            style={styles.rowInput}
+                            placeholder='0'
+                            onChangeText={(maxAmount) => STORE.setMaximumAmount(maxAmount)}
+                            keyboardType={'decimal-pad'}
+                            value={currentStore.max_amount.toString()}
+                        />
+                    </View>
+                )
                 break
             case 'estimation':
                 STORE = this.props.EstimationStore
@@ -37,22 +51,25 @@ export default class BudgetEditHeader extends React.Component {
 
         let updatedAt = currentStore.last_update
         console.log('updatedAt', updatedAt)
-        if(updatedAt) {
+        if (updatedAt) {
             updatedAt = moment(currentStore.last_update).format('LLLL')
-        }
-        else {
-            updatedAt= ''
+        } else {
+            updatedAt = ''
         }
 
         return (
             <View style={styles.topWrapper}>
                 <Text style={styles.updatedText}>{updatedAt}</Text>
-                <TextInput
-                    style={styles.titleText}
-                    placeholder='Untitled'
-                    onChangeText={(title) => STORE.setTitle(title)}
-                    value={currentStore.title}
-                />
+                <View style={styles.rowData}>
+                    <Text style={styles.rowLabel}>Title</Text>
+                    <TextInput
+                        style={styles.rowInput}
+                        placeholder='Enter your title here'
+                        onChangeText={(title) => STORE.setTitle(title)}
+                        value={currentStore.title}
+                        onFocus={this._onFocus}
+                    />
+                </View>
                 {maxAmountComponent}
             </View>
         )
@@ -74,27 +91,16 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         color: Colors.textSecondaryColor
     },
-    titleText: {
+    rowData: {
+        // backgroundColor: 'yellow',
+        marginBottom: 14,
+    },
+    rowLabel: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginBottom: 2,
+    },
+    rowInput: {
         fontSize: 20,
-        fontWeight: '500',
-        color: Colors.textPrimaryColor,
-        marginVertical: 8,
-    },
-    maximumWrapper: {
-        flex: -1,
-        flexDirection: 'row',
-        // backgroundColor: 'skyblue',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    maximumAmountText: {
-        fontSize: 16,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: Colors.borderColor,
-        padding: 5,
-    },
+    }
 })

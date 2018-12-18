@@ -1,5 +1,5 @@
 import React from 'react'
-import {View, StyleSheet, TextInput, Text} from 'react-native'
+import {View, StyleSheet, TextInput, Text, Alert} from 'react-native'
 import {BorderlessButton} from 'react-native-gesture-handler'
 import {inject, observer} from "mobx-react";
 import {PrimaryColorButton} from "./ButtonList";
@@ -37,15 +37,46 @@ export default class NoteListFooter extends React.Component {
     }
 
     _onPress = () => {
-        if (this.state.text) {
-            const {NoteStore} = this.props
-            const newNote = {
-                text: this.state.text,
-                price: this.state.price
-            }
-            NoteStore.insertNoteIntoDataBase(newNote)
-            this.setState({text: '', price: ''})
+        // if no text, display error without cancellable alerts
+        if (!this.state.text) {
+            Alert.alert(
+                `Save note`,
+                `Please enter a note title to save a note.`,
+                [
+                    {text: 'OK', onPress: () => console.log('pressed ok')},
+                ],
+                {cancelable: true}
+            )
+        } else {
+            // if no price is displayed, display error with cancellable alerts
+            this.checkPriceInput()
         }
+    }
+
+    checkPriceInput = () => {
+        if (!this.state.price) {
+            Alert.alert(
+                `Save note`,
+                `Save the note without entering price?`,
+                [
+                    {text: 'Yes', onPress: () => this.saveNote()},
+                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                ],
+                {cancelable: true}
+            )
+        } else {
+            this.saveNote()
+        }
+    }
+
+    saveNote = () => {
+        const {NoteStore} = this.props
+        const newNote = {
+            text: this.state.text,
+            price: this.state.price
+        }
+        NoteStore.insertNoteIntoDataBase(newNote)
+        this.setState({text: '', price: ''})
     }
 
     focusTextInput = () => {
@@ -61,7 +92,7 @@ export default class NoteListFooter extends React.Component {
                 <View style={styles.noteInputWrapper} ref={this.noteInputWrapperRef} onLayout={this._onLayout}>
                     <TextInput
                         ref={this.noteTextRef}
-                        placeholder={'Note'}
+                        placeholder={'Note title'}
                         style={[styles.noteInput, styles.noteText]}
                         value={this.state.text}
                         onChangeText={text => this.setState({text})}
@@ -74,7 +105,6 @@ export default class NoteListFooter extends React.Component {
                         value={this.state.price.toString()}
                         onChangeText={price => this.setState({price})}
                         keyboardType={'decimal-pad'}
-                        multiline={true}
                     />
                 </View>
                 <PrimaryColorButton title={'Save note'} onPress={this._onPress}/>

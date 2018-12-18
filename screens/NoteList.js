@@ -14,7 +14,7 @@ const db = SQLite.openDatabase('AccountingApp')
 export default class NoteList extends React.Component {
     constructor(props) {
         super(props)
-        this.myFlatList = React.createRef()
+        this.myNoteFlatList = React.createRef()
         this.state = {
             extraSize: 0,
             keyboardLayout: null,
@@ -42,13 +42,15 @@ export default class NoteList extends React.Component {
     keyboardOpened = event => {
         if (!this.state.isKeyboardOpen) {
             this.setState({isKeyboardOpen: true, extraSize: event.endCoordinates.height})
-            requestAnimationFrame(() => {
-                this.myFlatList.current.scrollToIndex({
-                    animated: true,
-                    index: this.props.NoteStore.NoteList.length - 1,
-                    viewOffset: 100
+            if(this.props.NoteStore.NoteList.length > 1) {
+                requestAnimationFrame(() => {
+                    this.myNoteFlatList.current.scrollToIndex({
+                        animated: true,
+                        index: this.props.NoteStore.NoteList.length - 1,
+                        viewOffset: 100
+                    })
                 })
-            })
+            }
         }
     }
 
@@ -81,7 +83,7 @@ export default class NoteList extends React.Component {
         return (
             <View style={styles.container}>
                 <FlatList
-                    ref={this.myFlatList}
+                    ref={this.myNoteFlatList}
                     ListHeaderComponent={this._renderHeader}
                     data={data}
                     renderItem={this._renderItem}

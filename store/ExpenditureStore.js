@@ -54,6 +54,7 @@ class ExpenditureStore {
                 (_, ResultSet) => {
                     console.log('created table expenditure successful')
                     this.updateExpenditureList()
+                    // this.testDB()
                 },
                 (_, error) => {
                     console.log('created table expenditure error', error)
@@ -69,7 +70,6 @@ class ExpenditureStore {
                 [],
                 (_, ResultSet) => {
                     console.log('created table eXpenditure items successful')
-                    // this.testDB()
                 },
                 (_, error) => {
                     console.log('created table eXpenditure items error', error)
@@ -81,7 +81,7 @@ class ExpenditureStore {
     @action testDB = () => {
         Database.transaction(tx => {
             tx.executeSql(
-                `DROP TABLE expenditure_items;`,
+                `DROP TABLE expenditures;`,
                 [],
                 (_, ResultSet) => {
                     console.log('all eXpenditure_items success ResultSet', ResultSet)
@@ -100,7 +100,7 @@ class ExpenditureStore {
                 // `INSERT INTO expenditures (title, max_amount) values ('Priority expenditures', 500), ('expenditures one', 2000);`,
                 [],
                 (_, {rows: {_array}}) => {
-                    // console.log('update expenditure list', _array)
+                    console.log('update expenditure list', _array)
                     this.ExpenditureList.replace(_array)
                 }
             )
@@ -138,7 +138,7 @@ class ExpenditureStore {
                     console.log('delete expenditure error', error)
                 }
             )
-        }, (error)=> {
+        }, (error) => {
             console.log('error', error)
         }, () => {
             console.log('success')
@@ -206,11 +206,12 @@ class ExpenditureStore {
     }
 
     @action pushCurrentExpenditureToExpenditureList = () => {
+        console.log('store current expenditure', this.CurrentExpenditure.max_amount)
         if (this.CurrentExpenditure.last_update) {
             console.log('before has last_update, is', this.CurrentExpenditure.last_update)
             for (let i = 0; i < this.ExpenditureList.length; i++) {
                 if (this.CurrentExpenditure.id === this.ExpenditureList[i].id) {
-                    console.log('found the expenditure, updating...')
+                    console.log('found the expenditure, updating...', this.CurrentExpenditure.max_amount)
                     let expenditure = Object.assign({}, this.CurrentExpenditure)
                     this.updateExpenditureObjectDB(expenditure)
                 }
@@ -226,8 +227,10 @@ class ExpenditureStore {
     @action insertExpenditureObjectDB = (newExpenditure) => {
         Database.transaction(tx => {
             tx.executeSql(
-                `INSERT INTO expenditures (title, max_amount) values (?, ?)`,
+                'INSERT INTO expenditures (title, max_amount) values (?, ?);',
+                // `INSERT INTO expenditures (title, max_amount) values ('test1', 50000123);`,
                 [newExpenditure.title, newExpenditure.max_amount],
+                // [],
                 (_, {insertId}) => {
                     console.log('new expenditure insert success insertId', insertId)
                     for (let i = 0; i < newExpenditure.item_list.length; i++) {
@@ -369,8 +372,8 @@ class ExpenditureStore {
         console.log('delete expenditure Item', itemId)
 
         // find and remove from the item list of current expenditure
-        for(let i=0; i<this.CurrentExpenditure.item_list.length; i++) {
-            if(itemId === this.CurrentExpenditure.item_list[i].id) {
+        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+            if (itemId === this.CurrentExpenditure.item_list[i].id) {
                 this.CurrentExpenditure.item_list.splice(i, 1);
             }
         }
@@ -436,18 +439,7 @@ class ExpenditureStore {
 
     // Expenditure Text Item MANIPULATION
 
-    ExpenditureLayout = null
     ExpenditureComponentIndex = 0
-
-    @action setInitialItemLayout = layout => {
-        // if (!this.ExpenditureLayout) {
-        //     // console.log('no ExpenditureLayout')
-        //     this.ExpenditureLayout = Object.assign({}, layout)
-        //     // console.log('made ExpenditureLayout', this.ExpenditureLayout)
-        // }
-        // // console.log('has ExpenditureLayout', this.ExpenditureLayout)
-        this.ExpenditureLayout = Object.assign({}, layout)
-    }
 
     @action setItemComponentIndex = id => {
         for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
