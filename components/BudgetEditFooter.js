@@ -54,7 +54,7 @@ export default class BudgetEditFooter extends React.Component {
                 STORE = this.props.ExpenditureStore
                 ErrorText = toJS(STORE.ErrorText)
                 balanceComponent = <View style={styles.balanceWrapper}>
-                    <Text style={styles.label}>Balance remaining</Text>
+                    <Text style={styles.label}>Your balance</Text>
                     <Text style={styles.balanceText}>{STORE.remainingExpenditureBalance}</Text>
                 </View>
                 break
@@ -62,7 +62,7 @@ export default class BudgetEditFooter extends React.Component {
                 STORE = this.props.EstimationStore
                 ErrorText = toJS(STORE.ErrorText)
                 balanceComponent = <View style={styles.balanceWrapper}>
-                    <Text style={styles.label}>Total balance</Text>
+                    <Text style={styles.label}>Your total</Text>
                     <Text style={styles.balanceText}>{STORE.totalAmount}</Text>
                 </View>
                 break

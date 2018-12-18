@@ -16,10 +16,7 @@ export default class ExpenditureEditScreen extends React.Component {
         super(props)
         this.myFlatList = React.createRef()
         this.state = {
-            keyboardLayout: null,
-            contentHeight: 0,
-            extraSize: 0,
-            contentSize: 0,
+            isKeyboardOpen: false
         }
     }
 
@@ -36,7 +33,7 @@ export default class ExpenditureEditScreen extends React.Component {
     _pushExpenditureToExpenditureList = () => {
         const {ExpenditureStore, navigation} = this.props
         let currentExpenditure = toJS(ExpenditureStore.CurrentExpenditure)
-        if(!currentExpenditure.title) {
+        if (!currentExpenditure.title) {
             Alert.alert(
                 `Title`,
                 'Please set an awesome title for this expenditure!',
@@ -46,8 +43,8 @@ export default class ExpenditureEditScreen extends React.Component {
                 ],
                 {cancelable: false}
             )
-        }
-        else {
+        } else {
+            console.log('screen current expenditure', currentExpenditure)
             ExpenditureStore.pushCurrentExpenditureToExpenditureList()
             navigation.goBack()
         }
@@ -59,11 +56,6 @@ export default class ExpenditureEditScreen extends React.Component {
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.keyboardOpened);
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardClosed);
         BackHandler.addEventListener('hardwareBackPress', this._handleBackPress);
-
-        // setTimeout(() => {
-        //     // this.myFlatList.current.scrollToOffset({offset: this.state.contentSize});
-        //     this.myFlatList.current.scrollToEnd()
-        // }, 1000)
     }
 
     componentWillUnmount() {
@@ -86,45 +78,25 @@ export default class ExpenditureEditScreen extends React.Component {
     }
 
     keyboardOpened = (event) => {
-        const keyboardLayout = event.endCoordinates
-        this.setState({keyboardLayout}, () => {
-            const {ExpenditureStore} = this.props
-            const ExpenditureLayout = toJS(ExpenditureStore.ExpenditureLayout)
-            const ExpenditureComponentIndex = toJS(ExpenditureStore.ExpenditureComponentIndex)
-            // // console.log('ExpenditureLayout', ExpenditureLayout)
-            // console.log('ExpenditureComponentIndex', ExpenditureComponentIndex)
-            if (ExpenditureLayout) {
-                // const position = (ExpenditureComponentIndex + 1) * ExpenditureLayout.height
-                const position = (ExpenditureComponentIndex) * ExpenditureLayout.height
-                // console.log('position', position)
-                const totalHeight = position + ExpenditureLayout.yOffset
-                // console.log('totalHeight', totalHeight)
-                // console.log('keyboardLayout', this.state.keyboardLayout)
-                if (totalHeight > this.state.keyboardLayout.screenY) {
-                    // console.log('extraSize YES scroll')
-                    this.setState({extraSize: ExpenditureLayout.height + this.state.keyboardLayout.height}, () => {
-                        // requestAnimationFrame(() => {
-                        //     this.myFlatList.current.scrollToOffset({
-                        //         offset: position,
-                        //         animated: true
-                        //     });
-                        // })
-                    })
-                    requestAnimationFrame(() => {
-                        this.myFlatList.current.scrollToOffset({offset: position, animated: true});
-                    })
-                }
-            }
-        })
-    }
-
-    _onContentSizeChange = (contentWidth, contentHeight) => {
-        this.setState({contentSize: contentHeight})
+        const {ExpenditureStore} = this.props
+        const ExpenditureComponentIndex = toJS(ExpenditureStore.ExpenditureComponentIndex)
+        if (!this.state.isKeyboardOpen && ExpenditureComponentIndex > 0) {
+            console.log('keyboard not open')
+            this.setState({extraSize: event.endCoordinates.height, isKeyboardOpen: true})
+            requestAnimationFrame(() => {
+                this.myFlatList.current.scrollToIndex({
+                    animated: true,
+                    index: ExpenditureComponentIndex,
+                    viewOffset: 100
+                })
+            })
+        } else {
+            console.log('keyboard already open or expenditure index is < 1')
+        }
     }
 
     keyboardClosed = (event) => {
-        // console.log('keyboard event', event)
-        this.setState({extraSize: 0})
+        this.setState({extraSize: 0, isKeyboardOpen: false})
     }
 
     _renderItem = ({item}) => {

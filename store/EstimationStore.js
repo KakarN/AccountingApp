@@ -390,18 +390,7 @@ class EstimationStore {
 
     // Estimation Text Item MANIPULATION
 
-    EstimationLayout = null
     EstimationComponentIndex = 0
-
-    @action setInitialItemLayout = layout => {
-        // if (!this.EstimationLayout) {
-        //     // console.log('no EstimationLayout')
-        //     this.EstimationLayout = Object.assign({}, layout)
-        //     // console.log('made EstimationLayout', this.EstimationLayout)
-        // }
-        // // console.log('has EstimationLayout', this.EstimationLayout)
-        this.EstimationLayout = Object.assign({}, layout)
-    }
 
     @action setItemComponentIndex = id => {
         for (let i = 0; i < this.CurrentEstimation.item_list.length; i++) {
