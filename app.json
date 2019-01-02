@@ -28,7 +28,8 @@
     },
     "android": {
       "package": "com.techhaste.accountingapp",
-      "versionCode": 2
+      "versionCode": 2,
+      "permissions": []
     },
     "description": "A minimalist app to simplify your financial and accounting problems. You can plan expenditures and estimated budgets, and keep a note of your daily expenses in a very minimalistic approach to your personal finance management.",
     "primaryColor": "#4745CE",
