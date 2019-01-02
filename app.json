@@ -24,10 +24,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.techhaste.accountingapp"
+      "bundleIdentifier": "com.techhaste.kakarnyori"
     },
     "android": {
-      "package": "com.techhaste.accountingapp",
+      "package": "com.techhaste.kakarnyori",
       "versionCode": 3,
       "permissions": []
     },
