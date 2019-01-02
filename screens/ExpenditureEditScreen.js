@@ -78,6 +78,7 @@ export default class ExpenditureEditScreen extends React.Component {
     }
 
     keyboardOpened = (event) => {
+        console.log('keyboardOpened estimation edit screen')
         const {ExpenditureStore} = this.props
         const ExpenditureComponentIndex = toJS(ExpenditureStore.ExpenditureComponentIndex)
         if (!this.state.isKeyboardOpen && ExpenditureComponentIndex > 0) {

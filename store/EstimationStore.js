@@ -1,48 +1,11 @@
 import {Share} from 'react-native'
 import {observable, action, computed} from 'mobx'
 import Database from './Database'
+import {databaseRollback, databaseCommit} from './database_utils'
 
 
 class EstimationStore {
     @observable EstimationList = []
-
-    // DATABASE MANIPULATION
-    @action createTables = () => {
-        this.createEstimationTable()
-        this.createEstimationItemTable()
-    }
-
-    @action createEstimationTable = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                `CREATE TABLE if not exists estimations (id integer primary key, title text not null, last_update datetime default (datetime('now', 'localtime')));`,
-                [],
-                (_, ResultSet) => {
-                    // console.log('created table eStimations successful')
-                    this.updateEstimationList()
-                },
-                (_, error) => {
-                    console.log('created table eStimations error', error)
-                }
-            )
-        })
-    }
-
-    @action createEstimationItemTable = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                `CREATE TABLE if not exists estimation_items (id integer primary key, name text not null, quantity integer not null, price real not null, estimation_id integer not null, foreign key(estimation_id) references estimations(id));`,
-                [],
-                (_, ResultSet) => {
-                    // console.log('created table eStimation_items successful')
-                    // this.testDB()
-                },
-                (_, error) => {
-                    console.log('created table eStimation_items error', error)
-                }
-            )
-        })
-    }
 
     @action updateEstimationList = () => {
         Database.transaction(tx => {
@@ -55,22 +18,6 @@ class EstimationStore {
                 },
                 (_, error) => {
                     console.log('updateEstimationList error', error)
-                }
-            )
-        })
-    }
-
-    @action testDB = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                // `INSERT INTO estimations (title) values('Picnic estimation');`,
-                `INSERT INTO estimation_items (name, quantity, price, estimation_id) values ('chicken', 4, 200, 1), ('pork', 2, 300, 1);`,
-                [],
-                (_, ResultSet) => {
-                    console.log('testDB success ResultSet', ResultSet)
-                },
-                (_, error) => {
-                    console.log('testDB error', error)
                 }
             )
         })
@@ -97,14 +44,36 @@ class EstimationStore {
         console.log('deleteObject', estimation_id)
         Database.transaction(tx => {
             tx.executeSql(
+                `BEGIN TRANSACTION;`,
+                [],
+                (_, ResultSet) => {
+                    console.log('delete estimation begin success', ResultSet)
+                },
+                (_, error) => {
+                    console.log('delete estimation begin error', error)
+                }
+            )
+            tx.executeSql(
                 `DELETE FROM estimations where id=?`,
                 [estimation_id],
                 (_, ResultSet) => {
                     console.log('delete estimation success', ResultSet)
-                    this.updateEstimationList()
                 },
                 (_, error) => {
                     console.log('delete estimation error', error)
+                }
+            )
+            tx.executeSql(
+                `DELETE FROM estimation_items where estimation_id=?;`,
+                [estimation_id],
+                (_, ResultSet) => {
+                    console.log('delete estimation item_list success', ResultSet)
+                    databaseCommit()
+                    this.updateEstimationList()
+                },
+                (_, error) => {
+                    databaseRollback()
+                    console.log('delete estimation item_list error', error)
                 }
             )
         }, (error) => {
@@ -390,14 +359,22 @@ class EstimationStore {
 
     // Estimation Text Item MANIPULATION
 
-    EstimationComponentIndex = 0
+    @observable EstimationComponentIndex = 0
 
     @action setItemComponentIndex = id => {
-        for (let i = 0; i < this.CurrentEstimation.item_list.length; i++) {
-            if (id === this.CurrentEstimation.item_list[i].id) {
-                this.EstimationComponentIndex = i
+        console.log('setItemComponentIndex', id)
+        if(id) {
+            for (let i = 0; i < this.CurrentEstimation.item_list.length; i++) {
+                if (id === this.CurrentEstimation.item_list[i].id) {
+                    this.EstimationComponentIndex = i
+                    break;
+                }
             }
         }
+        else {
+            this.EstimationComponentIndex = 0
+        }
+        console.log('setItemComponentIndex after', this.EstimationComponentIndex)
     }
 }
 

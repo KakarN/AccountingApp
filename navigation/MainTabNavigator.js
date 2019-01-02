@@ -4,6 +4,15 @@ import BudgetListScreen from "../screens/BudgetListScreen";
 import NoteList from "../screens/NoteList";
 
 const MainTabNavigator = createMaterialTopTabNavigator({
+    EstimateBudget: {
+        screen: BudgetListScreen,
+        navigationOptions: {
+            title: 'Estimate'
+        },
+        params: {
+            storeType: 'estimation'
+        }
+    },
     ExpenditurePlanning: {
         screen: BudgetListScreen,
         navigationOptions: {
@@ -18,15 +27,6 @@ const MainTabNavigator = createMaterialTopTabNavigator({
         navigationOptions: {
             title: 'Notes'
         },
-    },
-    EstimateBudget: {
-        screen: BudgetListScreen,
-        navigationOptions: {
-            title: 'Estimate'
-        },
-        params: {
-            storeType: 'estimation'
-        }
     },
 }, {
     tabBarOptions: {
