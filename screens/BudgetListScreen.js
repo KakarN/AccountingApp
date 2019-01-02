@@ -17,10 +17,10 @@ export default class BudgetListScreen extends React.Component {
         const storeType = navigation.getParam('storeType', null)
         switch (storeType) {
             case 'expenditure':
-                ExpenditureStore.createTables()
+                ExpenditureStore.updateExpenditureList()
                 break
             case 'estimation':
-                EstimationStore.createTables()
+                EstimationStore.updateEstimationList()
                 break
         }
     }

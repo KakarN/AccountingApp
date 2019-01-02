@@ -77,20 +77,27 @@ export default class EstimationEditScreen extends React.Component {
     }
 
     keyboardOpened = (event) => {
+        console.log('keyboardOpened estimation edit screen')
         const {EstimationStore} = this.props
         const EstimationComponentIndex = toJS(EstimationStore.EstimationComponentIndex)
-        if (!this.state.isKeyboardOpen && EstimationComponentIndex > 0) {
+        console.log('EstimationComponentIndex', EstimationComponentIndex)
+        if (!this.state.isKeyboardOpen) {
             console.log('keyboard not open')
-            this.setState({extraSize: event.endCoordinates.height, isKeyboardOpen: true})
-            requestAnimationFrame(() => {
-                this.myFlatList.current.scrollToIndex({
-                    animated: true,
-                    index: EstimationComponentIndex,
-                    viewOffset: 100
+            if(EstimationComponentIndex > 0) {
+                this.setState({extraSize: event.endCoordinates.height, isKeyboardOpen: true})
+                requestAnimationFrame(() => {
+                    this.myFlatList.current.scrollToIndex({
+                        animated: true,
+                        index: EstimationComponentIndex,
+                        viewOffset: 100
+                    })
                 })
-            })
+            }
+            else {
+                console.log('estimation index is < 1')
+            }
         } else {
-            console.log('keyboard already open or estimation index is < 1')
+            console.log('keyboard already open')
         }
     }
 
@@ -113,6 +120,8 @@ export default class EstimationEditScreen extends React.Component {
     render() {
         const {EstimationStore} = this.props
         const CurrentEstimation = toJS(EstimationStore.CurrentEstimation)
+        console.log('CurrentEstimation', CurrentEstimation)
+        console.log('CurrentEstimation.item_list', CurrentEstimation.item_list)
 
         return (
             <View style={styles.container}>
@@ -120,6 +129,7 @@ export default class EstimationEditScreen extends React.Component {
                     ref={this.myFlatList}
                     // style={{backgroundColor: 'red'}}
                     contentContainerStyle={{paddingBottom: this.state.extraSize}}
+                    data={CurrentEstimation.item_list}
                     data={CurrentEstimation.item_list}
                     ListHeaderComponent={this._renderHeaderComponent}
                     renderItem={this._renderItem}

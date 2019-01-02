@@ -25,13 +25,27 @@ export default class NoteList extends React.Component {
 
     componentDidMount() {
         this.createTable()
-        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.keyboardOpened);
-        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardClosed);
+        this.didFocusSubscription = this.props.navigation.addListener(
+            'didFocus',
+            payload => {
+              console.debug('didFocus');
+              this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.keyboardOpened);
+              this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardClosed);
+            }
+          );
+        this.didBlurSubscription = this.props.navigation.addListener(
+            'didBlur',
+            payload => {
+              console.debug('didBlur');
+              this.keyboardDidShowListener.remove();
+              this.keyboardDidHideListener.remove();
+            }
+          );
     }
 
     componentWillUnmount() {
-        this.keyboardDidShowListener.remove();
-        this.keyboardDidHideListener.remove();
+        this.didFocusSubscription.remove();
+        this.didBlurSubscription.remove();
     }
 
     createTable = async () => {
@@ -40,6 +54,7 @@ export default class NoteList extends React.Component {
     }
 
     keyboardOpened = event => {
+        console.log('keyboardOpened notelist')
         if (!this.state.isKeyboardOpen) {
             this.setState({isKeyboardOpen: true, extraSize: event.endCoordinates.height})
             if(this.props.NoteStore.NoteList.length > 1) {

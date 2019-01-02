@@ -14,10 +14,10 @@ export default class BudgetEditHeader extends React.Component {
         const {storeType} = this.props
         switch (storeType) {
             case 'expenditure':
-                this.props.ExpenditureStore.setItemComponentIndex(1)
+                this.props.ExpenditureStore.setItemComponentIndex(null)
                 break
             case 'estimation':
-                this.props.EstimationStore.setItemComponentIndex(1)
+                this.props.EstimationStore.setItemComponentIndex(null)
                 break
         }
     }

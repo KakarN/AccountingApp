@@ -1,97 +1,12 @@
 import {observable, action, computed} from "mobx"
 import Database from './Database';
 import {Share} from "react-native";
+import {databaseRollback, databaseCommit} from './database_utils'
 
 class ExpenditureStore {
-    @observable ExpenditureList = [
-        // {
-        //     id: 1,
-        //     title: 'Priority Expenditure',
-        //     max_amount: 10000,
-        //     item_list: [
-        //         {
-        //             id: 1,
-        //             quantity: 10,
-        //             price: 450,
-        //             name: 'Cement'
-        //         },
-        //         {
-        //             id: 2,
-        //             quantity: 200,
-        //             price: 10,
-        //             name: 'Bricks'
-        //         },
-        //     ],
-        //     last_update: new Date().getTime(),
-        // },
-        // {
-        //     id: 2,
-        //     title: 'Test expenditure',
-        //     max_amount: 2000,
-        //     item_list: [
-        //         {
-        //             id: 1,
-        //             quantity: 10,
-        //             price: 450,
-        //             name: 'Wire'
-        //         },
-        //     ],
-        //     last_update: new Date().getTime(),
-        // }
-    ]
+    @observable ExpenditureList = []
 
     // DATABASE MANIPULATION
-    @action createTables = () => {
-        this.createExpenditureTable()
-        this.createExpenditureItemTable()
-    }
-
-    @action createExpenditureTable = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                `CREATE TABLE if not exists expenditures (id integer primary key, title text not null, max_amount real not null, last_update datetime default (datetime('now', 'localtime')));`,
-                [],
-                (_, ResultSet) => {
-                    console.log('created table expenditure successful')
-                    this.updateExpenditureList()
-                    // this.testDB()
-                },
-                (_, error) => {
-                    console.log('created table expenditure error', error)
-                }
-            )
-        })
-    }
-
-    @action createExpenditureItemTable = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                `CREATE TABLE if not exists expenditure_items (id integer primary key, name text not null, quantity integer not null, price real not null, expenditure_id integer not null, foreign key(expenditure_id) references expenditures(id));`,
-                [],
-                (_, ResultSet) => {
-                    console.log('created table eXpenditure items successful')
-                },
-                (_, error) => {
-                    console.log('created table eXpenditure items error', error)
-                }
-            )
-        })
-    }
-
-    @action testDB = () => {
-        Database.transaction(tx => {
-            tx.executeSql(
-                `DROP TABLE expenditures;`,
-                [],
-                (_, ResultSet) => {
-                    console.log('all eXpenditure_items success ResultSet', ResultSet)
-                },
-                (_, error) => {
-                    console.log('all eXpenditure_items error', error)
-                }
-            )
-        })
-    }
 
     @action updateExpenditureList = () => {
         Database.transaction(tx => {
@@ -128,6 +43,16 @@ class ExpenditureStore {
         console.log('deleteObject', expenditure_id)
         Database.transaction(tx => {
             tx.executeSql(
+                `BEGIN TRANSACTION;`,
+                [],
+                (_, ResultSet) => {
+                    console.log('delete expenditure begin success', ResultSet)
+                },
+                (_, error) => {
+                    console.log('delete expenditure begin error', error)
+                }
+            )
+            tx.executeSql(
                 `DELETE FROM expenditures where id=?`,
                 [expenditure_id],
                 (_, ResultSet) => {
@@ -136,6 +61,19 @@ class ExpenditureStore {
                 },
                 (_, error) => {
                     console.log('delete expenditure error', error)
+                }
+            )
+            tx.executeSql(
+                `DELETE FROM expenditure_items where expenditure_id=?;`,
+                [expenditure_id],
+                (_, ResultSet) => {
+                    console.log('delete expenditure item_list success', ResultSet)
+                    databaseCommit()
+                    this.updateExpenditureList()
+                },
+                (_, error) => {
+                    databaseRollback()
+                    console.log('delete expenditure item_list error', error)
                 }
             )
         }, (error) => {
@@ -442,10 +380,15 @@ class ExpenditureStore {
     ExpenditureComponentIndex = 0
 
     @action setItemComponentIndex = id => {
-        for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
-            if (id === this.CurrentExpenditure.item_list[i].id) {
-                this.ExpenditureComponentIndex = i
+        if(id) {
+            for (let i = 0; i < this.CurrentExpenditure.item_list.length; i++) {
+                if (id === this.CurrentExpenditure.item_list[i].id) {
+                    this.ExpenditureComponentIndex = i
+                }
             }
+        }
+        else {
+            this.ExpenditureComponentIndex = 0
         }
     }
 }
